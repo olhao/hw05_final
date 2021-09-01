@@ -4,6 +4,7 @@
 {% block content %}
 {% load thumbnail %}
     <div class="container">
+        {% csrf_token %}
         {% include 'posts/includes/switcher.html' %}
         {% for post in page_obj %}
           <ul>

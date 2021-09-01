@@ -110,11 +110,10 @@ class Follow(models.Model):
         verbose_name="Автор",
         help_text="Впишите имя автора",
         null=True,
-        default=1,
     )
 
     def __str__(self):
-        return self.user
+        return str(self.author)
 
     class Meta:
         verbose_name = "Подписка"

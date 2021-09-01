@@ -125,9 +125,9 @@ def add_comment(request, post_id):
 def profile_follow(request, username):
     # Подписаться на автора
     author = get_object_or_404(User, username=username)
-    # user = Follow.objects.filter(user=request.user)
-    user = get_object_or_404(Follow, user=request.user)
-    author.following.add(user)
+    user = request.user
+    if author != user and author.following.count() == 0:
+        Follow.objects.create(user=user, author=author)
     return redirect("posts:profile", username=username)
 
 
@@ -135,15 +135,14 @@ def profile_follow(request, username):
 def profile_unfollow(request, username):
     # Дизлайк, отписка
     author = get_object_or_404(User, username=username)
-    # user = Follow.objects.filter(user=request.user)
-    user = get_object_or_404(Follow, user=request.user)
-    author.following.remove(user)
+    follow = Follow.objects.filter(user=request.user, author=author)
+    if author.following.count() == 1:
+        follow.delete()
     return redirect("posts:profile", username=username)
 
 
 @login_required
 def follow_index(request):
-    # информация о текущем пользователе доступна в переменной request.user
     user = request.user
     author = user.follower.values_list("author", flat=True)
     post_list = Post.objects.filter(author__in=author)
