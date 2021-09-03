@@ -153,8 +153,6 @@ class PostPagesTests(TestCase):
             reverse("posts:post_detail", kwargs={"post_id": self.post_user.pk})
         )
 
-        # self.assertEqual(response.context.get('post').text, self.post_text)
-
         post_object = response.context["post"]
         post_text = post_object.text
         post_author = post_object.author.username
@@ -342,18 +340,18 @@ class PostCacheIndexViewTests(TestCase):
         self.authorized_client.force_login(self.user)
 
     def test_cache_of_home_page(self):
-        response_post_exits = self.guest_client.get(reverse
-                                                    ("posts:index"))\
-            .content
+        response_post_exits = (self.guest_client.get(reverse
+                                                     ("posts:index"))
+                               .content)
         self.post_user.delete()
-        response_post_deleted = self.guest_client.get(reverse
-                                                      ("posts:index"))\
-            .content
+        response_post_deleted = (self.guest_client.get(reverse
+                                                       ("posts:index"))
+                                 .content)
         self.assertEqual(response_post_exits, response_post_deleted)
         cache.clear()
-        response_cache_cleared = self.guest_client.get(reverse
-                                                       ("posts:index"))\
-            .content
+        response_cache_cleared = (self.guest_client.get(reverse
+                                                        ("posts:index"))
+                                  .content)
         self.assertNotEqual(response_post_exits, response_cache_cleared)
 
 
@@ -371,6 +369,7 @@ class PostFollowViewTests(TestCase):
         )
 
     def setUp(self) -> None:
+        self.guest_client = Client()
         self.follower = Client()
         self.follower.force_login(self.user1)
         self.not_follower = Client()
@@ -378,20 +377,24 @@ class PostFollowViewTests(TestCase):
         self.following = Client()
         self.following.force_login(self.user3)
 
-    def test_follow_and_unfollow_the_user(self):
-        follow = Follow.objects.create(user=self.user1, author=self.user3)
+    def test_follow_the_user(self):
+        follow = Follow.objects.create(user=self.user1,
+                                       author=self.user3)
         self.assertTrue(follow, "Пользователь не подписан")
-        unfollow = follow.delete()
+
+    def test_unfollow_the_user(self):
+        unfollow = Follow.objects.filter(user=self.user1,
+                                         author=self.user3).delete()
         self.assertTrue(unfollow, "Пользователь не отписался")
 
-    def test_following_post_visibility(self):
-        content_before_follow = self.follower.get(reverse
-                                                  ("posts:follow_index"))\
-            .content
-        Follow.objects.create(user=self.user1, author=self.user3)
-        content_after_follow = self.follower.get(reverse
-                                                 ("posts:follow_index"))\
-            .content
+    def test_following_post_visibility_for_authorized_user(self):
+        content_before_follow = (self.follower.get(reverse
+                                                   ("posts:follow_index"))
+                                 .content)
+        Follow.objects.get_or_create(user=self.user1, author=self.user3)
+        content_after_follow = (self.follower.get(reverse
+                                                  ("posts:follow_index"))
+                                .content)
         content_for_not_follower = self.not_follower.get(
             reverse("posts:follow_index")
         ).content
@@ -406,4 +409,15 @@ class PostFollowViewTests(TestCase):
             content_for_not_follower,
             "Пост отображается на странице подписок, "
             "для неподписанного автора",
+        )
+
+    def test_following_post_visibility_for_guest_user(self):
+        content_following_post_for_guest_user = (self.guest_client
+                                                 .get(reverse
+                                                      ("posts:follow_index"))
+                                                 .content)
+
+        self.assertFalse(
+            content_following_post_for_guest_user,
+            "Контент для гостевого юзера не является ожидаемым",
         )

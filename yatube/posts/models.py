@@ -11,12 +11,12 @@ class Group(models.Model):
     slug = models.SlugField("Слаг", unique=True, help_text="Добавьте слаг")
     description = models.TextField("Описание", help_text="Добавьте описание")
 
-    def __str__(self):
-        return self.title
-
     class Meta:
         verbose_name = "Группа"
         verbose_name_plural = "Группы"
+
+    def __str__(self):
+        return self.title
 
 
 class Post(models.Model):
@@ -48,13 +48,13 @@ class Post(models.Model):
 
     image = models.ImageField("Картинка", upload_to="posts/", blank=True)
 
-    def __str__(self):
-        return self.text[:15]
-
     class Meta:
         ordering = ["-pub_date"]
         verbose_name = "Пост"
         verbose_name_plural = "Посты"
+
+    def __str__(self):
+        return self.text[:15]
 
 
 class Comment(models.Model):
@@ -84,13 +84,13 @@ class Comment(models.Model):
         help_text="Добавьте дату коментария"
     )
 
-    def __str__(self):
-        return self.text
-
     class Meta:
         ordering = ["-created"]
         verbose_name = "Комментарий"
         verbose_name_plural = "Комментарии"
+
+    def __str__(self):
+        return self.text
 
 
 class Follow(models.Model):
@@ -112,9 +112,9 @@ class Follow(models.Model):
         null=True,
     )
 
-    def __str__(self):
-        return str(self.author)
-
     class Meta:
         verbose_name = "Подписка"
         verbose_name_plural = "Подписки"
+
+    def __str__(self):
+        return str(self.author)

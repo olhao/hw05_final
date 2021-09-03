@@ -126,8 +126,9 @@ def profile_follow(request, username):
     # Подписаться на автора
     author = get_object_or_404(User, username=username)
     user = request.user
-    if author != user and author.following.count() == 0:
-        Follow.objects.create(user=user, author=author)
+    if author != user and not (Follow.objects.filter(
+            user=request.user, author=author).exists()):
+        Follow.objects.get_or_create(user=user, author=author)
     return redirect("posts:profile", username=username)
 
 
@@ -135,9 +136,7 @@ def profile_follow(request, username):
 def profile_unfollow(request, username):
     # Дизлайк, отписка
     author = get_object_or_404(User, username=username)
-    follow = Follow.objects.filter(user=request.user, author=author)
-    if author.following.count() == 1:
-        follow.delete()
+    Follow.objects.filter(user=request.user, author=author).delete()
     return redirect("posts:profile", username=username)
 
 
